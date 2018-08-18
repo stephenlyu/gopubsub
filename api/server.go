@@ -11,6 +11,9 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
+const DEFAULT_PORT = 7788
+const DEFAULT_END_POINT = "/source"
+
 type Server struct {
 	connMgr *connmanager.ConnManager
 	port int
@@ -18,6 +21,13 @@ type Server struct {
 }
 
 func NewServer(conf config.Config, port int, endPoint string) *Server {
+	if port == 0 {
+		port = DEFAULT_PORT
+	}
+	if endPoint == "" {
+		endPoint = DEFAULT_END_POINT
+	}
+
 	return &Server{
 		connMgr: connmanager.NewConnManager(conf),
 		port: port,

@@ -21,7 +21,7 @@ func (this _callback) OnError(err error) {
 func main() {
 	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true, TimestampFormat: "20060102 15:04:05.999999999"})
 
-	client := api.NewClient("localhost", 8080, "/quote", &_callback{})
+	client := api.NewClient("localhost", api.DEFAULT_PORT, api.DEFAULT_END_POINT, &_callback{})
 	err := client.Start()
 	if err != nil {
 		panic(err)
