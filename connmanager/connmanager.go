@@ -71,6 +71,7 @@ func (this *ConnManager) Start() {
 	for {
 		select {
 		case conn := <- this.registerCh:
+			logrus.Infof("ConnManager conn %s connected.", conn.Id)
 			this.connections[conn.Id] = conn
 			this.connectionSubjects[conn.Id] = make(map[string]bool)
 
@@ -102,7 +103,7 @@ func (this *ConnManager) Start() {
 				for conn := range connections {
 					select {
 					case conn.SendCh <- message:		// SendCh需要支持一定量的缓存
-					default:
+					default:							// TODO: 需要更好的处理
 						close(conn.SendCh)				// 关闭SendCh后，会导致Connection.Write循环退出，从而关闭socket，然后导致Read循环读取失败
 						clearConnection(conn)
 					}

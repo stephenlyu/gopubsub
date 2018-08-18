@@ -47,7 +47,7 @@ func (this *Connection) Read() {
 	for {
 		err := websocket.JSON.Receive(this.Socket, &message)
 		if err != nil {
-			logrus.Errorf("Connection.Read error: %+v", err)
+			logrus.Errorf("Connection.Read conn %s error: %+v", this.Id, err)
 			break
 		}
 		this.handleMessage(message)
@@ -63,14 +63,14 @@ func (this *Connection) Write() {
 		select {
 		case message, ok := <- this.SendCh:
 			if !ok {
-				logrus.Error("Connection.Write SendCh closed.")
+				logrus.Errorf("Connection.Write conn %s SendCh closed.", this.Id)
 				return
 			}
 
 			// TODO: 支持重试
 			err := websocket.JSON.Send(this.Socket, message)
 			if err != nil {
-				logrus.Errorf("Connection.Write error: %+v", err)
+				logrus.Errorf("Connection.Write conn %s error: %+v", this.Id, err)
 				return
 			}
 		}

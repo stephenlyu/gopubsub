@@ -8,6 +8,7 @@ import (
 	"github.com/stephenlyu/gopubsub/message"
 	"github.com/stephenlyu/gopubsub/config"
 	"golang.org/x/net/websocket"
+	"github.com/Sirupsen/logrus"
 )
 
 type Server struct {
@@ -27,6 +28,7 @@ func NewServer(conf config.Config, port int, endPoint string) *Server {
 func (this *Server) handler(socket *websocket.Conn) {
 	conn := this.connMgr.CreateConnection(socket)
 	conn.Run()
+	logrus.Infof("Server.handler conn %s disconnect.", conn.Id)
 }
 
 func (this *Server) Start() {

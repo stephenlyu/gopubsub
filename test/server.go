@@ -20,8 +20,8 @@ func main() {
 		server.Publish(message.Message{Subject: "a", Data:counter})
 		counter++
 		//time.Sleep(time.Second)
-		server.Publish(message.Message{Subject: "b", Data:counter})
-		counter++
+		//server.Publish(message.Message{Subject: "b", Data:counter})
+		//counter++
 		time.Sleep(time.Millisecond)
 	}
 }
