@@ -24,6 +24,7 @@ type Client struct {
 	host string
 	port int
 	endPoint string
+	secure bool
 
 	callback MessageCallback
 
@@ -43,9 +44,21 @@ func NewClient(host string, port int, endPoint string, callback MessageCallback)
 	}
 }
 
+func (this *Client) SetSecure(secure bool) {
+	this.secure = secure
+}
+
 func (this *Client) Start() error {
-	url := fmt.Sprintf("ws://%s:%d%s", this.host, this.port, this.endPoint)
-	origin := fmt.Sprintf("http://%s:%d", this.host, this.port)
+	var url string
+	var origin string
+
+	if this.secure {
+		url = fmt.Sprintf("wss://%s:%d%s", this.host, this.port, this.endPoint)
+		origin = fmt.Sprintf("https://%s:%d", this.host, this.port)
+	} else {
+		url = fmt.Sprintf("ws://%s:%d%s", this.host, this.port, this.endPoint)
+		origin = fmt.Sprintf("http://%s:%d", this.host, this.port)
+	}
 	ws, err := websocket.Dial(url, "", origin)
 	if err != nil {
 		return err
