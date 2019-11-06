@@ -7,6 +7,10 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
+	"github.com/stephenlyu/gopubsub/config"
+	"io/ioutil"
+	"compress/gzip"
+	"bytes"
 )
 
 const HEARTBEAT_INTERVAL = time.Minute
@@ -88,6 +92,10 @@ func (this *Client) Read() {
 			break
 		}
 
+		if config.DEFAULT_CONFIG.SupportZip {
+			raw, err = GzipDecode(raw)
+		}
+
 		err = json.Unmarshal(raw, &message)
 		if err != nil {
 			this.onError(err)
@@ -123,4 +131,14 @@ func (this *Client) Subscribe(subjects []string) {
 
 func (this *Client) UnSubscribe(subjects []string) {
 	this.SendCh <- &message.Message{Subject: "UNSUBSCRIBE", Data: strings.Join(subjects, ",")}
+}
+
+func GzipDecode(in []byte) ([]byte, error) {
+	reader, err := gzip.NewReader(bytes.NewReader(in))
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
+
+	return ioutil.ReadAll(reader)
 }

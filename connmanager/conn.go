@@ -5,6 +5,8 @@ import (
 	"github.com/stephenlyu/gopubsub/message"
 	"strings"
 	"github.com/Sirupsen/logrus"
+	"time"
+	"encoding/json"
 )
 
 type Connection struct {
@@ -67,13 +69,20 @@ func (this *Connection) Write() {
 				logrus.Errorf("Connection.Write conn %s SendCh closed.", this.Id)
 				return
 			}
-
+			var data []byte
+			this.Socket.SetWriteDeadline(time.Now().Add(time.Second))
 			switch message.(type) {
-			case []byte, string:
-				err = websocket.Message.Send(this.Socket, message)
+			case []byte:
+				data = message.([]byte)
+			case string:
+				data = []byte(message.(string))
 			default:
-				err = websocket.JSON.Send(this.Socket, message)
+				data, _ = json.Marshal(message)
+				if this.manager.config.SupportZip {
+					data, _ = GzipEncode(data)
+				}
 			}
+			err = websocket.Message.Send(this.Socket, data)
 
 			// TODO: 支持重试
 			if err != nil {

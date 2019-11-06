@@ -102,6 +102,9 @@ func (this *ConnManager) Start() {
 		case message := <- this.messageCh:
 			if connections, ok := this.subjectSubscribers[message.Subject]; ok {
 				data, _ := json.Marshal(message)
+				if this.config.SupportZip {
+					data, _ = GzipEncode(data)
+				}
 				for conn := range connections {
 					select {
 					case conn.SendCh <- data:		// SendCh需要支持一定量的缓存
