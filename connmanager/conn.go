@@ -11,7 +11,7 @@ type Connection struct {
 	manager *ConnManager
 	Id     string
 	Socket *websocket.Conn
-	SendCh   chan *message.Message
+	SendCh   chan interface{}
 }
 
 func (this *Connection) handleMessage(msg *message.Message) {
@@ -59,6 +59,7 @@ func (this *Connection) Write() {
 		this.Socket.Close()
 	}()
 
+	var err error
 	for {
 		select {
 		case message, ok := <- this.SendCh:
@@ -67,8 +68,14 @@ func (this *Connection) Write() {
 				return
 			}
 
+			switch message.(type) {
+			case []byte, string:
+				err = websocket.Message.Send(this.Socket, message)
+			default:
+				err = websocket.JSON.Send(this.Socket, message)
+			}
+
 			// TODO: 支持重试
-			err := websocket.JSON.Send(this.Socket, message)
 			if err != nil {
 				logrus.Errorf("Connection.Write conn %s error: %+v", this.Id, err)
 				return

@@ -1,6 +1,6 @@
 package message
 
 type Message struct {
-	Subject string
-	Data interface{}
+	Subject string			`json:"subject"`
+	Data interface{}		`json:"data"`
 }

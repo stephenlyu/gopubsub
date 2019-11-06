@@ -6,6 +6,7 @@ import (
 	"github.com/pborman/uuid"
 	"golang.org/x/net/websocket"
 	"github.com/Sirupsen/logrus"
+	"encoding/json"
 )
 
 type SubUnSub struct {
@@ -100,9 +101,10 @@ func (this *ConnManager) Start() {
 
 		case message := <- this.messageCh:
 			if connections, ok := this.subjectSubscribers[message.Subject]; ok {
+				data, _ := json.Marshal(message)
 				for conn := range connections {
 					select {
-					case conn.SendCh <- message:		// SendCh需要支持一定量的缓存
+					case conn.SendCh <- data:		// SendCh需要支持一定量的缓存
 					default:							// TODO: 需要更好的处理
 						close(conn.SendCh)				// 关闭SendCh后，会导致Connection.Write循环退出，从而关闭socket，然后导致Read循环读取失败
 						clearConnection(conn)
@@ -130,7 +132,7 @@ func (this *ConnManager) CreateConnection(Socket *websocket.Conn) *Connection {
 		manager: this,
 		Id: uuid.New(),
 		Socket: Socket,
-		SendCh: make(chan *Message, this.config.ConnectionSendBufSize),
+		SendCh: make(chan interface{}, this.config.ConnectionSendBufSize),
 	}
 
 	this.registerCh <- conn
