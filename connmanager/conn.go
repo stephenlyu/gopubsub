@@ -19,6 +19,7 @@ type Connection struct {
 func (this *Connection) handleMessage(msg *message.Message) {
 	switch msg.Subject {
 	case "PING":
+		logrus.Infof("Connection.handleMessage PING(%s)", this.Id)
 		this.manager.Send(message.Message{Subject: "PONG", Data: msg.Data})
 	case "SUBSCRIBE":
 		if subjectStr, ok := msg.Data.(string); ok {
@@ -41,8 +42,8 @@ func (this *Connection) handleMessage(msg *message.Message) {
 
 func (this *Connection) Read() {
 	defer func() {
-		this.manager.unregisterCh <- this
 		this.Socket.Close()
+		this.manager.unregisterCh <- this
 	}()
 
 	var message *message.Message
@@ -59,6 +60,7 @@ func (this *Connection) Read() {
 func (this *Connection) Write() {
 	defer func() {
 		this.Socket.Close()
+		this.manager.unregisterCh <- this
 	}()
 
 	var err error
@@ -69,8 +71,10 @@ func (this *Connection) Write() {
 				logrus.Errorf("Connection.Write conn %s SendCh closed.", this.Id)
 				return
 			}
+			logrus.Infof("Connection.Write conn %s writing..", this.Id)
+			startT := time.Now()
 			var data []byte
-			this.Socket.SetWriteDeadline(time.Now().Add(time.Second))
+			this.Socket.SetWriteDeadline(time.Now().Add(time.Second * 10))
 			switch message.(type) {
 			case []byte:
 				data = message.([]byte)
@@ -89,6 +93,7 @@ func (this *Connection) Write() {
 				logrus.Errorf("Connection.Write conn %s error: %+v", this.Id, err)
 				return
 			}
+			logrus.Infof("Connection.Write conn %s timecost: %s", this.Id, time.Now().Sub(startT))
 		}
 	}
 }

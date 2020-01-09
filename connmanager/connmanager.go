@@ -106,12 +106,10 @@ func (this *ConnManager) Start() {
 					data, _ = GzipEncode(data)
 				}
 				for conn := range connections {
-					select {
-					case conn.SendCh <- data:		// SendCh需要支持一定量的缓存
-					default:							// TODO: 需要更好的处理
-						close(conn.SendCh)				// 关闭SendCh后，会导致Connection.Write循环退出，从而关闭socket，然后导致Read循环读取失败
-						clearConnection(conn)
-					}
+					go func(c *Connection) {
+						logrus.Infof("conn%s c.SendCh <- data", c.Id)
+						c.SendCh <- data
+					}(conn)
 				}
 			}
 		}

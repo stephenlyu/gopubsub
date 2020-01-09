@@ -11,9 +11,10 @@ import (
 	"io/ioutil"
 	"compress/gzip"
 	"bytes"
+	"github.com/Sirupsen/logrus"
 )
 
-const HEARTBEAT_INTERVAL = time.Minute
+const HEARTBEAT_INTERVAL = 20 * time.Second
 
 type MessageCallback interface {
 	OnMessage(message *message.Message, raw []byte)
@@ -88,6 +89,7 @@ func (this *Client) heartbeat() {
 	for {
 		select {
 		case <- time.After(HEARTBEAT_INTERVAL):
+			logrus.Infof("Client.heartbeat")
 			this.SendCh <- &message.Message{Subject: "PING", Data: time.Now().Unix()}
 		case <- this.quitCh:
 			break
