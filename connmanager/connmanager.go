@@ -1,41 +1,42 @@
 package connmanager
 
 import (
-	. "github.com/stephenlyu/gopubsub/message"
-	. "github.com/stephenlyu/gopubsub/config"
-	"github.com/pborman/uuid"
-	"golang.org/x/net/websocket"
-	"github.com/Sirupsen/logrus"
 	"encoding/json"
+
+	"github.com/pborman/uuid"
+	"github.com/sirupsen/logrus"
+	. "github.com/stephenlyu/gopubsub/config"
+	. "github.com/stephenlyu/gopubsub/message"
+	"golang.org/x/net/websocket"
 )
 
 type SubUnSub struct {
 	subjects []string
-	Conn *Connection
+	Conn     *Connection
 }
 
 type ConnManager struct {
-	config             Config
+	config Config
 
-	connections        map[string]*Connection
+	connections map[string]*Connection
 
-	subjectSubscribers map[string]map[*Connection]bool		// key: connection id 	value: map from connection pointer to bool
-	connectionSubjects map[string]map[string]bool			// key: connection id 	value: map from subject to bool
+	subjectSubscribers map[string]map[*Connection]bool // key: connection id 	value: map from connection pointer to bool
+	connectionSubjects map[string]map[string]bool      // key: connection id 	value: map from subject to bool
 
-	registerCh         chan *Connection
-	unregisterCh       chan *Connection
+	registerCh   chan *Connection
+	unregisterCh chan *Connection
 
-	subscribeCh        chan *SubUnSub
-	unsubscribeCh      chan *SubUnSub
+	subscribeCh   chan *SubUnSub
+	unsubscribeCh chan *SubUnSub
 
-	messageCh          chan *Message
+	messageCh chan *Message
 }
 
 func NewConnManager(config Config) *ConnManager {
 	return &ConnManager{
 		config: config,
 
-		connections:    make(map[string]*Connection),
+		connections: make(map[string]*Connection),
 
 		subjectSubscribers: make(map[string]map[*Connection]bool),
 		connectionSubjects: make(map[string]map[string]bool),
@@ -57,7 +58,7 @@ func (this *ConnManager) removeConnectionFromSubjectSubscribers(subject string, 
 }
 
 func (this *ConnManager) Start() {
-	clearConnection := func (conn *Connection) {
+	clearConnection := func(conn *Connection) {
 		delete(this.connections, conn.Id)
 
 		// Remove connection from subject subscribers
@@ -71,18 +72,18 @@ func (this *ConnManager) Start() {
 
 	for {
 		select {
-		case conn := <- this.registerCh:
+		case conn := <-this.registerCh:
 			logrus.Infof("ConnManager conn %s connected.", conn.Id)
 			this.connections[conn.Id] = conn
 			this.connectionSubjects[conn.Id] = make(map[string]bool)
 
-		case conn := <- this.unregisterCh:
+		case conn := <-this.unregisterCh:
 			if _, ok := this.connections[conn.Id]; ok {
 				close(conn.SendCh)
 				clearConnection(conn)
 			}
 
-		case subUnsub := <- this.subscribeCh:
+		case subUnsub := <-this.subscribeCh:
 			subjects, conn := subUnsub.subjects, subUnsub.Conn
 			for _, subject := range subjects {
 				if _, ok := this.subjectSubscribers[subject]; !ok {
@@ -92,14 +93,14 @@ func (this *ConnManager) Start() {
 				this.connectionSubjects[conn.Id][subject] = true
 			}
 
-		case subUnsub := <- this.unsubscribeCh:
+		case subUnsub := <-this.unsubscribeCh:
 			subjects, conn := subUnsub.subjects, subUnsub.Conn
 			for _, subject := range subjects {
 				this.removeConnectionFromSubjectSubscribers(subject, conn)
 				delete(this.connectionSubjects[conn.Id], subject)
 			}
 
-		case message := <- this.messageCh:
+		case message := <-this.messageCh:
 			if connections, ok := this.subjectSubscribers[message.Subject]; ok {
 				data, _ := json.Marshal(message)
 				if this.config.SupportZip {
@@ -131,9 +132,9 @@ func (this *ConnManager) UnSubscribe(conn *Connection, subjects []string) {
 func (this *ConnManager) CreateConnection(Socket *websocket.Conn) *Connection {
 	conn := &Connection{
 		manager: this,
-		Id: uuid.New(),
-		Socket: Socket,
-		SendCh: make(chan interface{}, this.config.ConnectionSendBufSize),
+		Id:      uuid.New(),
+		Socket:  Socket,
+		SendCh:  make(chan interface{}, this.config.ConnectionSendBufSize),
 	}
 
 	this.registerCh <- conn

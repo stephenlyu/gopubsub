@@ -1,17 +1,18 @@
 package api
 
 import (
-	"github.com/stephenlyu/gopubsub/message"
-	"golang.org/x/net/websocket"
-	"fmt"
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 	"github.com/stephenlyu/gopubsub/config"
-	"io/ioutil"
-	"compress/gzip"
-	"bytes"
-	"github.com/Sirupsen/logrus"
+	"github.com/stephenlyu/gopubsub/message"
+	"golang.org/x/net/websocket"
 )
 
 const HEARTBEAT_INTERVAL = 20 * time.Second
@@ -22,26 +23,26 @@ type MessageCallback interface {
 }
 
 type Client struct {
-	host string
-	port int
+	host     string
+	port     int
 	endPoint string
-	secure bool
+	secure   bool
 
 	callback MessageCallback
 
-	ws *websocket.Conn
+	ws     *websocket.Conn
 	SendCh chan *message.Message
 	quitCh chan struct{}
 }
 
 func NewClient(host string, port int, endPoint string, callback MessageCallback) *Client {
 	return &Client{
-		host: host,
-		port: port,
+		host:     host,
+		port:     port,
 		endPoint: endPoint,
 		callback: callback,
-		SendCh: make(chan *message.Message),
-		quitCh: make(chan struct{}),
+		SendCh:   make(chan *message.Message),
+		quitCh:   make(chan struct{}),
 	}
 }
 
@@ -88,10 +89,10 @@ func (this *Client) onError(err error) {
 func (this *Client) heartbeat() {
 	for {
 		select {
-		case <- time.After(HEARTBEAT_INTERVAL):
+		case <-time.After(HEARTBEAT_INTERVAL):
 			logrus.Infof("Client.heartbeat")
 			this.SendCh <- &message.Message{Subject: "PING", Data: time.Now().Unix()}
-		case <- this.quitCh:
+		case <-this.quitCh:
 			break
 		}
 	}
@@ -126,7 +127,7 @@ func (this *Client) Read() {
 func (this *Client) Write() {
 	for {
 		select {
-		case message, ok := <- this.SendCh:
+		case message, ok := <-this.SendCh:
 			if !ok {
 				return
 			}

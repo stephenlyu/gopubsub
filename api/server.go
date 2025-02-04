@@ -1,22 +1,23 @@
 package api
 
 import (
-	"github.com/stephenlyu/gopubsub/connmanager"
-	"net/http"
-	"log"
 	"fmt"
-	"github.com/stephenlyu/gopubsub/message"
+	"log"
+	"net/http"
+
+	"github.com/sirupsen/logrus"
 	"github.com/stephenlyu/gopubsub/config"
+	"github.com/stephenlyu/gopubsub/connmanager"
+	"github.com/stephenlyu/gopubsub/message"
 	"golang.org/x/net/websocket"
-	"github.com/Sirupsen/logrus"
 )
 
 const DEFAULT_PORT = 7788
 const DEFAULT_END_POINT = "/source"
 
 type Server struct {
-	connMgr *connmanager.ConnManager
-	port int
+	connMgr  *connmanager.ConnManager
+	port     int
 	endPoint string
 }
 
@@ -29,8 +30,8 @@ func NewServer(conf config.Config, port int, endPoint string) *Server {
 	}
 
 	return &Server{
-		connMgr: connmanager.NewConnManager(conf),
-		port: port,
+		connMgr:  connmanager.NewConnManager(conf),
+		port:     port,
 		endPoint: endPoint,
 	}
 }

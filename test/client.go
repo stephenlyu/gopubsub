@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/sirupsen/logrus"
 	"github.com/stephenlyu/gopubsub/api"
 	"github.com/stephenlyu/gopubsub/message"
-	"github.com/Sirupsen/logrus"
 )
 
 type _callback struct {
@@ -30,5 +31,5 @@ func main() {
 	client.Subscribe([]string{"a", "b"})
 
 	ch := make(chan struct{})
-	<- ch
+	<-ch
 }

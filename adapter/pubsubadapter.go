@@ -1,18 +1,18 @@
 package pubsubadapter
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/stephenlyu/gopubsub/api"
-	"github.com/stephenlyu/gopubsub/redispubsub"
 	"github.com/stephenlyu/gopubsub/config"
-	"github.com/Sirupsen/logrus"
+	"github.com/stephenlyu/gopubsub/redispubsub"
 )
 
 type PubSubAdapter struct {
-	server *api.Server
+	server      *api.Server
 	redisPubSub *redispubsub.RedisPubSub
 
 	translator MessageTranslator
-	channels []interface{}
+	channels   []interface{}
 }
 
 func NewPubSubAdapter(redisUrl string, redisPassword string, serverConfig config.Config, serverPort int, serverEndPoint string) *PubSubAdapter {
@@ -20,9 +20,9 @@ func NewPubSubAdapter(redisUrl string, redisPassword string, serverConfig config
 	redisPubSub := redispubsub.NewRedisPubSub(redisUrl, redisPassword)
 
 	return &PubSubAdapter{
-		server: server,
+		server:      server,
 		redisPubSub: redisPubSub,
-		translator: &TransparentTranslator{},
+		translator:  &TransparentTranslator{},
 	}
 }
 

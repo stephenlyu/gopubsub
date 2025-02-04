@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/Sirupsen/logrus"
-	"github.com/stephenlyu/gopubsub/adapter"
+	"github.com/sirupsen/logrus"
+	pubsubadapter "github.com/stephenlyu/gopubsub/adapter"
 	"github.com/stephenlyu/gopubsub/config"
 )
 

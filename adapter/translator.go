@@ -1,9 +1,10 @@
 package pubsubadapter
 
 import (
-	"github.com/stephenlyu/gopubsub/message"
-	"github.com/Sirupsen/logrus"
 	"encoding/json"
+
+	"github.com/sirupsen/logrus"
+	"github.com/stephenlyu/gopubsub/message"
 )
 
 type MessageTranslator interface {

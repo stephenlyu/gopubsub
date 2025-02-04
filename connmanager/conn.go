@@ -1,19 +1,20 @@
 package connmanager
 
 import (
-	"golang.org/x/net/websocket"
-	"github.com/stephenlyu/gopubsub/message"
-	"strings"
-	"github.com/Sirupsen/logrus"
-	"time"
 	"encoding/json"
+	"strings"
+	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/stephenlyu/gopubsub/message"
+	"golang.org/x/net/websocket"
 )
 
 type Connection struct {
 	manager *ConnManager
-	Id     string
-	Socket *websocket.Conn
-	SendCh   chan interface{}
+	Id      string
+	Socket  *websocket.Conn
+	SendCh  chan interface{}
 }
 
 func (this *Connection) handleMessage(msg *message.Message) {
@@ -25,17 +26,17 @@ func (this *Connection) handleMessage(msg *message.Message) {
 		if subjectStr, ok := msg.Data.(string); ok {
 			subjects := strings.Split(subjectStr, ",")
 			this.manager.Subscribe(this, subjects)
-			this.SendCh <- &message.Message{Subject:"SUBSCRIBE", Data: "OK"}
+			this.SendCh <- &message.Message{Subject: "SUBSCRIBE", Data: "OK"}
 		} else {
-			this.SendCh <- &message.Message{Subject:"SUBSCRIBE", Data: "BAD SUBJECTS"}
+			this.SendCh <- &message.Message{Subject: "SUBSCRIBE", Data: "BAD SUBJECTS"}
 		}
 	case "UNSUBSCRIBE":
 		if subjectStr, ok := msg.Data.(string); ok {
 			subjects := strings.Split(subjectStr, ",")
 			this.manager.UnSubscribe(this, subjects)
-			this.SendCh <- &message.Message{Subject:"UNSUBSCRIBE", Data: "OK"}
+			this.SendCh <- &message.Message{Subject: "UNSUBSCRIBE", Data: "OK"}
 		} else {
-			this.SendCh <- &message.Message{Subject:"UNSUBSCRIBE", Data: "BAD SUBJECTS"}
+			this.SendCh <- &message.Message{Subject: "UNSUBSCRIBE", Data: "BAD SUBJECTS"}
 		}
 	}
 }
@@ -66,7 +67,7 @@ func (this *Connection) Write() {
 	var err error
 	for {
 		select {
-		case message, ok := <- this.SendCh:
+		case message, ok := <-this.SendCh:
 			if !ok {
 				logrus.Errorf("Connection.Write conn %s SendCh closed.", this.Id)
 				return

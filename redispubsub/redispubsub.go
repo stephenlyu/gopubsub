@@ -1,9 +1,10 @@
 package redispubsub
 
 import (
-	"github.com/garyburd/redigo/redis"
 	"time"
-	"github.com/Sirupsen/logrus"
+
+	"github.com/garyburd/redigo/redis"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -24,7 +25,7 @@ func NewRedisPubSub(address string, password string) *RedisPubSub {
 	}
 
 	return &RedisPubSub{
-		Pool: redis.Pool {
+		Pool: redis.Pool{
 			MaxIdle:     3,
 			IdleTimeout: 240 * time.Second,
 			Dial: func() (redis.Conn, error) {
@@ -59,7 +60,7 @@ func (this *RedisPubSub) Subscribe(callback PubSubMessageCallback, channels ...i
 		switch v := psc.Receive().(type) {
 		case redis.Subscription:
 			logrus.Infof("%s: %s %d\n", v.Channel, v.Kind, v.Count)
-		case redis.Message://单个订阅subscribe
+		case redis.Message: //单个订阅subscribe
 			if callback != nil {
 				callback.OnMessage(v.Channel, v.Data)
 			}
